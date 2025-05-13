@@ -29,6 +29,11 @@
         <div id="diskStats">
             <p>Loading disk space statistics...</p>
         </div>
+        <br>
+        <div class="cleanup-controls"> <label for="daysInput">Delete files older than (days):</label>
+            <input type="number" id="daysInput" value="3" min="0"> <button id="deleteBtn">Delete Files</button>
+            <p id="cleanupStatus">Status: Idle</p> </div>
+
     </div>
 
 </div>
@@ -37,6 +42,48 @@
     const stopBtn = document.getElementById('stopBtn');
     const statusElement = document.getElementById('recordingStatus');
     const diskStatsElement = document.getElementById('diskStats');
+
+    const daysInput = document.getElementById('daysInput');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const cleanupStatusElement = document.getElementById('cleanupStatus');
+
+    async function sendDeleteCommand() {
+        const days = daysInput.value;
+
+        if (days === "" || isNaN(days) || parseInt(days) < 0) {
+            cleanupStatusElement.textContent = "Status: Please enter a valid number of days (0 or more).";
+            return;
+        }
+
+        cleanupStatusElement.textContent = `Status: Deleting files older than ${days} days...`;
+        deleteBtn.disabled = true;
+
+        let response = null;
+
+        try {
+            response = await fetch('/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'days=' + days
+            });
+
+            const result = await response.text(); // Get the text response from the server
+
+            if (response.ok) {
+                cleanupStatusElement.textContent = `Status: ${result}`;
+            } else {
+                cleanupStatusElement.textContent = `Status: Error (${response.status}) - ${result}`;
+            }
+
+        } catch (error) {
+            console.error('Fetch error (delete):', error);
+            cleanupStatusElement.textContent = `Status: Network Error - ${error.message}`; // Display network error
+        } finally {
+            deleteBtn.disabled = false;
+        }
+    }
 
     async function sendAction(action) {
         statusElement.textContent = `Status: Sending '${action}' command...`;
@@ -121,6 +168,7 @@
 
     recordBtn.addEventListener('click', () => sendAction('start'));
     stopBtn.addEventListener('click', () => sendAction('stop'));
+    deleteBtn.addEventListener('click', () => sendDeleteCommand());
 
     fetchDiskStatistics();
 
