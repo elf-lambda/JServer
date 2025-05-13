@@ -62,6 +62,7 @@ public class JServer {
         server.createContext("/videos", this::handleVideosRequest);
         server.createContext("/clips/", this::handleClipDownload);
         server.createContext("/statistics", this::handleStatistics);
+        server.createContext("/delete", this::handleDelete);
 
         // Using shared thread pool for handling requests
         server.setExecutor(executor);
@@ -75,6 +76,8 @@ public class JServer {
         System.out.println("Videos list at http://0.0.0.0:" + relayPort + "/videos");
         System.out.println("Clips served from http://0.0.0.0:" + relayPort + "/clips/");
         System.out.println("Statistics at http://0.0.0.0:" + relayPort + "/statistics");
+        System.out.println("Delete files at http://0.0.0.0:" + relayPort + "/delete");
+
 
         // Add shutdown hook for graceful exit
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -117,6 +120,48 @@ public class JServer {
             buffer.flush();
             return buffer.toByteArray();
         }
+    }
+
+    private void handleDelete(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            exchange.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        // Body should be days=x
+        String requestBody;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
+            requestBody = reader.readLine();
+        }
+
+        String responseMsg;
+        int statusCode;
+
+        if (requestBody != null && requestBody.startsWith("days=")) {
+            String daysStr = requestBody.substring("days=".length()).trim();
+            int days = Integer.parseInt(daysStr);
+            int countOfDeletedFiles = CleanupManager.deleteFilesOlderThan(RECORDING_CLIPS_DIR, days);
+            if (countOfDeletedFiles == 0) {
+                responseMsg = "0 Files deleted.";
+                statusCode = 200;
+            } else {
+                responseMsg = countOfDeletedFiles + " Files deleted";
+                statusCode = 200;
+            }
+        } else {
+            responseMsg = "Invalid request body. Expected 'days=start' or 'days=stop'.";
+            statusCode = 400;
+        }
+
+        byte[] responseBytes = responseMsg.getBytes(StandardCharsets.UTF_8);
+        exchange.sendResponseHeaders(statusCode, responseBytes.length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(responseBytes);
+            os.flush();
+        }
+
+
     }
 
     // Handle statistics of the diskpace where the server is running on
@@ -228,6 +273,7 @@ public class JServer {
             return;
         }
 
+        // Body should be action=start/stop
         String requestBody;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
             requestBody = reader.readLine();
