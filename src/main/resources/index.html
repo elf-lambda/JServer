@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MJPEG Stream</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div class="page-layout">
+    <div class="container">
+        <h1>Webcam Stream Server</h1>
+        <br>
+        <h2>Live Stream Snippet:</h2>
+        <img src="/stream" alt="MJPEG Stream" width="640" height="480">
+        <h2>Fullscreen View:</h2>
+        <p><a href="/stream">View Stream Fullscreen</a></p>
+    </div>
+
+    <div class="statistics">
+        <h2>Recording Control</h2>
+        <button id="recordBtn">Record</button>
+        <button id="stopBtn">Stop Recording</button>
+        <p id="recordingStatus">Status: Idle</p>
+        <h2>Statistics</h2>
+        <div id="diskStats">
+            <p>Loading disk space statistics...</p>
+        </div>
+    </div>
+
+</div>
+<script>
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusElement = document.getElementById('recordingStatus');
+    const diskStatsElement = document.getElementById('diskStats');
+
+    async function sendAction(action) {
+        statusElement.textContent = `Status: Sending '${action}' command...`;
+
+        try {
+            const response = await fetch('/record', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded', // Standard for simple form-like data
+                },
+                body: 'action=' + action // action=start, stop
+            });
+
+            const result = await response.text();
+
+            if (response.ok) { // Check if status is 2xx
+                statusElement.textContent = `Status: ${result}`;
+            } else {
+                statusElement.textContent = `Status: Error (${response.status}) - ${result}`;
+            }
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            statusElement.textContent = `Status: Network Error - ${error.message}`;
+        }
+    }
+
+    async function fetchDiskStatistics() {
+        try {
+            const response = await fetch('/statistics');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            const statsHTML = `
+                <div class="stat-item">
+                    <span class="stat-label">Total Space:</span>
+                    <span class="stat-value">${data.totalSpaceFormatted}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Free Space:</span>
+                    <span class="stat-value">${data.freeSpaceFormatted}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Usable Space:</span>
+                    <span class="stat-value">${data.usableSpaceFormatted}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Space Used:</span>
+                    <span class="stat-value">${calculateUsedSpace(data)}</span>
+                </div>
+            `;
+
+            diskStatsElement.innerHTML = statsHTML;
+
+        } catch (error) {
+            console.error('Error fetching disk statistics:', error);
+            diskStatsElement.innerHTML = `<p>Error loading disk statistics: ${error.message}</p>`;
+        }
+    }
+
+    function calculateUsedSpace(data) {
+        const total = data.totalSpace;
+        const free = data.freeSpace;
+        const used = total - free;
+        const percentage = Math.round((used / total) * 100);
+        return `${percentage}% (${formatBytes(used)})`;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    recordBtn.addEventListener('click', () => sendAction('start'));
+    stopBtn.addEventListener('click', () => sendAction('stop'));
+
+    fetchDiskStatistics();
+
+    // Refresh every 60 seconds
+    setInterval(fetchDiskStatistics, 60000);
+</script>
+
+</body>
+</html>

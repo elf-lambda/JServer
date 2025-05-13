@@ -1,0 +1,108 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+    margin-top: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.page-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    gap: 40px;
+}
+
+.container {
+    flex: 2;
+    width: 65%;
+    padding: 25px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.statistics {
+    flex: 1;
+    width: 35%;
+    padding: 25px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 20px;
+}
+
+h1, h2 {
+    color: #2c3e50;
+    margin-bottom: 1.2rem;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    margin: 25px auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+a {
+    display: inline-block;
+    margin-top: 15px;
+    color: #3498db;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #2980b9;
+    text-decoration: none;
+}
+
+button {
+    padding: 12px 25px;
+    margin: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+}
+
+button#recordBtn {
+    background-color: #27ae60;
+    color: white;
+}
+
+button#recordBtn:hover:not(:disabled) {
+    background-color: #219a52;
+}
+
+button#stopBtn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+button#stopBtn:hover:not(:disabled) {
+    background-color: #c0392b;
+}
+
+button:disabled {
+    background-color: #95a5a6;
+}
+
+#recordingStatus {
+    margin: 20px 0;
+    font-size: 1em;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+#diskStats {
+    font-size: 0.95em;
+    line-height: 1.6;
+    color: #34495e;
+}
