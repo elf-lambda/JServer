@@ -2,6 +2,8 @@
 
 This project provides components for streaming and recording a webcam feed, primarily developed on a Raspberry Pi. It utilizes a lightweight C server for initial capture and streaming, and a Java server for multi-client relaying, web control, and recording via FFmpeg.
 
+![Image Screenshot](screenshots/ss1.png)
+
 ## Architecture
 
 The system is designed with the following components:
