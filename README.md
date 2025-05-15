@@ -43,10 +43,10 @@ The C server source code is located in the `src/main/c` directory. You can compi
 
 1. We can compile the Java project by running
 
-``
+```
 mvn clean install
 mvn clean package
-``
+```
 
 2. We can run
 
