@@ -1,108 +1,86 @@
+/* Reset & base styles */
 body {
-    font-family: sans-serif;
-    text-align: center;
-    margin-top: 20px;
-    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f6f9;
     color: #333;
 }
 
+/* Layout */
 .page-layout {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+    gap: 20px;
 }
 
-.container {
-    flex: 2;
-    width: 65%;
-    padding: 25px;
+/* Card-style containers */
+.container, .statistics {
     background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    max-width: 700px;
+    flex: 1 1 300px;
 }
 
-.statistics {
-    flex: 1;
-    width: 35%;
-    padding: 25px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 20px;
-}
-
+/* Headings */
 h1, h2 {
     color: #2c3e50;
-    margin-bottom: 1.2rem;
 }
 
-img {
-    max-width: 100%;
-    height: auto;
-    margin: 25px auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Buttons */
+button {
+    padding: 10px 16px;
+    margin: 5px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Inputs */
+input[type="number"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-right: 8px;
+    width: 60px;
+}
+
+/* Links */
 a {
-    display: inline-block;
-    margin-top: 15px;
-    color: #3498db;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-a:hover {
-    color: #2980b9;
+    color: #007bff;
     text-decoration: none;
 }
 
-button {
-    padding: 12px 25px;
-    margin: 8px;
-    font-size: 1em;
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    transition: transform 0.2s ease;
+a:hover {
+    text-decoration: underline;
 }
 
-button#recordBtn {
-    background-color: #27ae60;
-    color: white;
+/* Specific sections */
+.stream-section img {
+    border-radius: 8px;
+    max-width: 100%;
+    margin-bottom: 10px;
 }
 
-button#recordBtn:hover:not(:disabled) {
-    background-color: #219a52;
-}
-
-button#stopBtn {
-    background-color: #e74c3c;
-    color: white;
-}
-
-button#stopBtn:hover:not(:disabled) {
-    background-color: #c0392b;
-}
-
-button:disabled {
-    background-color: #95a5a6;
-}
-
-#recordingStatus {
-    margin: 20px 0;
-    font-size: 1em;
-    color: #7f8c8d;
+.fullscreen-link, .videos-link {
+    display: inline-block;
+    margin-top: 10px;
     font-weight: 500;
 }
 
-#diskStats {
-    font-size: 0.95em;
-    line-height: 1.6;
-    color: #34495e;
+/* Cleanup */
+.cleanup-controls {
+    margin-top: 20px;
 }
