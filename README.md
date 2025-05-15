@@ -10,11 +10,11 @@ The system is designed with the following components:
 
 1.  **Camera Device:** The physical webcam, typically exposed as a V4L2 device like `/dev/video0`.
 
-2.  **FFmpeg Mirror Process (Current Setup):** In the current setup, an FFmpeg process reads from the primary camera device (`/dev/video0`) and creates virtual video devices (`/dev/video98`, `/dev/video99`) using `v4l2loopback`. This allows multiple applications to access the camera feed simultaneously.
+2.  **FFmpeg Mirror Process:** In the current setup, an FFmpeg process reads from the primary camera device (`/dev/video0`) and creates virtual video devices (`/dev/video98`, `/dev/video99`) using `v4l2loopback`. This allows multiple applications to access the camera feed simultaneously.
 
 3.  **C Server:** A lightweight HTTP server component written in C. It reads the video feed from a specific V4L2 mirrored device (currently `/dev/video99`) and serves it as a single-client MJPEG stream over HTTP on port 8080.
 
-4.  **Java Server (Future Component):** This server, built with Java, is the central control and relay application.
+4.  **Java Server:** This server, built with Java, is the central control and relay application.
     * It connects to the MJPEG stream provided by the C server (`http://localhost:8080`).
     * It relays this stream to multiple connected web clients via its own HTTP endpoint (`/stream` on port 9090).
     * It serves a simple HTML homepage (`/`) containing a Live-feed snipptet and statistics about the disk space, and a page listing recorded videos (`/videos`).
