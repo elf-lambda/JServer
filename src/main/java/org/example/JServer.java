@@ -32,6 +32,8 @@ public class JServer {
     private static final String CAMERA_DEVICE_PATH = "/dev/video98";
     private static final String FFMPEG_LOG_FILE = "./ffmpeg.log";
     private final File ffmpegLogFile;
+    private long serverStartTimeMillis;
+    private long recordingStartTimeMillis = -1;
 
     public JServer(String sourceUrl, int relayPort) {
         this.sourceUrl = sourceUrl;
@@ -47,6 +49,8 @@ public class JServer {
         } catch (IOException e) {
             System.err.println("Warning: Could not create FFmpeg log file at " + FFMPEG_LOG_FILE + ": " + e.getMessage());
         }
+
+        this.serverStartTimeMillis = System.currentTimeMillis();
     }
 
     public void start() throws Exception {
@@ -180,6 +184,8 @@ public class JServer {
         diskInfo.put("freeSpaceFormatted", DiskStatistics.formatSize(diskStatistics.get(1)));
         diskInfo.put("usableSpace", diskStatistics.get(2));
         diskInfo.put("usableSpaceFormatted", DiskStatistics.formatSize(diskStatistics.get(2)));
+        diskInfo.put("serverStartTimeMillis", serverStartTimeMillis);
+        diskInfo.put("recordingStartTimeMillis", recordingStartTimeMillis);
 
         ObjectMapper mapper = new ObjectMapper();
         String jsonResponse = mapper.writeValueAsString(diskInfo);
@@ -345,6 +351,7 @@ public class JServer {
 
             recordingProcess = pb.start();
             isRecording = true;
+            recordingStartTimeMillis = System.currentTimeMillis();
             System.out.println("Recording process started, output redirected to " + FFMPEG_LOG_FILE);
 
             executor.submit(() -> monitorRecordingProcess(recordingProcess));
@@ -356,8 +363,10 @@ public class JServer {
             e.printStackTrace();
             recordingProcess = null;
             isRecording = false;
+            recordingStartTimeMillis = -1;
             return false;
         }
+
     }
 
     // Utility

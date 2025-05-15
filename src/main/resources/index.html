@@ -26,11 +26,15 @@
     </div>
 
     <div class="statistics">
-        <h2>🎬 Recording Control</h2>
+        <h2>Server Uptime</h2>
+        <p id="serverUptime"> No Uptime! </p>
+
+        <h2>🎬 Recording Control and Uptime</h2>
         <div class="recording-controls">
             <button id="recordBtn">Record</button>
             <button id="stopBtn">Stop Recording</button>
             <p id="recordingStatus">Status: Idle</p>
+            <p id="recordingUptime"> No Uptime! </p>
         </div>
 
         <h2>📊 Statistics</h2>
@@ -57,6 +61,12 @@
     const deleteBtn = document.getElementById('deleteBtn');
     const cleanupStatusElement = document.getElementById('cleanupStatus');
 
+    const serverUptime = document.getElementById('serverUptime');
+    const recordingUptime = document.getElementById('recordingUptime');
+
+    let serverStartTimeMillis = -1;
+    let currentRecordingStartTimeMillis = -1;
+
     async function sendDeleteCommand() {
         const days = daysInput.value;
 
@@ -79,7 +89,7 @@
                 body: 'days=' + days
             });
 
-            const result = await response.text(); // Get the text response from the server
+            const result = await response.text();
 
             if (response.ok) {
                 cleanupStatusElement.textContent = `Status: ${result}`;
@@ -89,7 +99,7 @@
 
         } catch (error) {
             console.error('Fetch error (delete):', error);
-            cleanupStatusElement.textContent = `Status: Network Error - ${error.message}`; // Display network error
+            cleanupStatusElement.textContent = `Status: Network Error - ${error.message}`;
         } finally {
             deleteBtn.disabled = false;
         }
@@ -109,7 +119,7 @@
 
             const result = await response.text();
 
-            if (response.ok) { // Check if status is 2xx
+            if (response.ok) {
                 statusElement.textContent = `Status: ${result}`;
             } else {
                 statusElement.textContent = `Status: Error (${response.status}) - ${result}`;
@@ -151,10 +161,31 @@
             `;
 
             diskStatsElement.innerHTML = statsHTML;
+            serverStartTimeMillis = Number(data.serverStartTimeMillis);
+            currentRecordingStartTimeMillis = Number(data.recordingStartTimeMillis);
 
         } catch (error) {
             console.error('Error fetching disk statistics:', error);
             diskStatsElement.innerHTML = `<p>Error loading disk statistics: ${error.message}</p>`;
+        }
+    }
+
+    function updateUptimesDisplay() {
+        const currentTimeMillis = Date.now();
+
+        if (serverStartTimeMillis !== -1) {
+            const serverUptimeMillis = currentTimeMillis - serverStartTimeMillis;
+            serverUptime.textContent = formatDurationJS(serverUptimeMillis);
+        } else {
+            serverUptime.textContent = "Loading...";
+        }
+
+        if (currentRecordingStartTimeMillis !== -1) {
+            const recordingUptimeMillis = currentTimeMillis - currentRecordingStartTimeMillis;
+            recordingUptime.textContent = formatDurationJS(recordingUptimeMillis);
+            statusElement.textContent = `Status: Recording`;
+        } else {
+            recordingUptime.textContent = "Idle";
         }
     }
 
@@ -164,6 +195,23 @@
         const used = total - free;
         const percentage = Math.round((used / total) * 100);
         return `${percentage}% (${formatBytes(used)})`;
+    }
+
+    function formatDurationJS(millis) {
+        if (millis < 0) return "N/A";
+
+        const totalSeconds = Math.floor(millis / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const parts = [];
+        if (hours > 0) parts.push(hours + " h");
+        if (minutes > 0 || hours > 0) parts.push(minutes + " m");
+        if (seconds > 0 || totalSeconds === 0) parts.push(seconds + " s");
+
+
+        return parts.join(" ");
     }
 
     function formatBytes(bytes) {
@@ -184,6 +232,7 @@
 
     // Refresh every 60 seconds
     setInterval(fetchDiskStatistics, 60000);
+    setInterval(updateUptimesDisplay, 1000);
 </script>
 
 </body>
