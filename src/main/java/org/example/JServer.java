@@ -34,6 +34,7 @@ public class JServer {
     private final File ffmpegLogFile;
     private long serverStartTimeMillis;
     private long recordingStartTimeMillis = -1;
+    private boolean toResetCameraStream = false;
 
     public JServer(String sourceUrl, int relayPort) {
         this.sourceUrl = sourceUrl;
@@ -67,6 +68,7 @@ public class JServer {
         server.createContext("/clips/", this::handleClipDownload);
         server.createContext("/statistics", this::handleStatistics);
         server.createContext("/delete", this::handleDelete);
+        server.createContext("/reset", this::handleReset);
 
         // Using shared thread pool for handling requests
         server.setExecutor(executor);
@@ -123,6 +125,45 @@ public class JServer {
             }
             buffer.flush();
             return buffer.toByteArray();
+        }
+    }
+
+    private void handleReset(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            exchange.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        // Body should be reset=true/false
+        String requestBody;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
+            requestBody = reader.readLine();
+        }
+
+        String responseMsg;
+        int statusCode;
+
+        if (requestBody != null && requestBody.startsWith("reset=")) {
+            String resetStr = requestBody.substring("reset=".length()).trim();
+            if (resetStr.equals("true")) {
+                toResetCameraStream = true;
+                responseMsg = "Set camera Reset to True";
+                statusCode = 200;
+            } else {
+                responseMsg = "Set camera Reset to False";
+                statusCode = 200;
+            }
+        } else {
+            responseMsg = "Invalid request body. Expected 'reset=true' or 'reset=false'.";
+            statusCode = 400;
+        }
+
+        byte[] responseBytes = responseMsg.getBytes(StandardCharsets.UTF_8);
+        exchange.sendResponseHeaders(statusCode, responseBytes.length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(responseBytes);
+            os.flush();
         }
     }
 
@@ -459,7 +500,7 @@ public class JServer {
                 int bytesRead;
 
                 // Read source stream and broadcast to all clients
-                while ((bytesRead = source.read(buffer)) != -1 && !Thread.currentThread().isInterrupted()) {
+                while ((bytesRead = source.read(buffer)) != -1 && !Thread.currentThread().isInterrupted() && !toResetCameraStream) {
                     final byte[] frameChunk = Arrays.copyOf(buffer, bytesRead);
 
                     List<OutputStream> currentClients = new ArrayList<>(streamClients);
@@ -476,6 +517,8 @@ public class JServer {
                         }
                     }
                 }
+                toResetCameraStream = false;
+                System.out.println("Set Reset Camera to false");
                 System.out.println("Source stream ended.");
             } catch (IOException e) {
                 System.err.println("Error reading source URL: " + sourceUrl + " - " + e.getMessage());
@@ -486,8 +529,8 @@ public class JServer {
 
             try {
                 if (!Thread.currentThread().isInterrupted()) {
-                    System.out.println("Attempting source reconnect in 5s...");
-                    TimeUnit.SECONDS.sleep(5);
+                    System.out.println("Attempting source reconnect in 1s...");
+                    TimeUnit.SECONDS.sleep(1);
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
