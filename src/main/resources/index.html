@@ -26,7 +26,29 @@
     </div>
 
     <div class="statistics">
-        <h2>Server Uptime</h2>
+        <div class="serverUptime">
+            <h2>Server Uptime</h2>
+            <style>
+                .serverUptime {
+                    display: flex;
+                    align-items: flex-start;
+                }
+                #resetBtn {
+                    background-color: red;
+                    font-size: 14px;
+                    margin-top: 20px;
+                    margin-left: 20px;
+                    border: none;
+                    color: white;
+                    cursor: pointer;
+                }
+                #resetBtn:hover {
+                    background-color: darkred;
+                }
+            </style>
+            <button id="resetBtn">Reset Stream Feed</button>
+
+        </div>
         <p id="serverUptime"> No Uptime! </p>
 
         <h2>🎬 Recording Control and Uptime</h2>
@@ -63,6 +85,8 @@
 
     const serverUptime = document.getElementById('serverUptime');
     const recordingUptime = document.getElementById('recordingUptime');
+
+    const resetBtn= document.getElementById('resetBtn');
 
     let serverStartTimeMillis = -1;
     let currentRecordingStartTimeMillis = -1;
@@ -102,6 +126,32 @@
             cleanupStatusElement.textContent = `Status: Network Error - ${error.message}`;
         } finally {
             deleteBtn.disabled = false;
+        }
+    }
+
+    async function sendReset(action) {
+        console.log(`Status: Sending '${action}' command...`);
+
+        try {
+            const response = await fetch('/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded', // Standard for simple form-like data
+                },
+                body: 'reset=' + action // action=true, false
+            });
+
+            const result = await response.text();
+
+            if (response.ok) {
+                statusElement.textContent = `Status: ${result}`;
+            } else {
+                statusElement.textContent = `Status: Error (${response.status}) - ${result}`;
+            }
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            statusElement.textContent = `Status: Network Error - ${error.message}`;
         }
     }
 
@@ -227,6 +277,7 @@
     recordBtn.addEventListener('click', () => sendAction('start'));
     stopBtn.addEventListener('click', () => sendAction('stop'));
     deleteBtn.addEventListener('click', () => sendDeleteCommand());
+    resetBtn.addEventListener('click', () => sendReset('true'));
 
     fetchDiskStatistics();
 
