@@ -83,6 +83,7 @@ public class JServer {
         System.out.println("Clips served from http://0.0.0.0:" + relayPort + "/clips/");
         System.out.println("Statistics at http://0.0.0.0:" + relayPort + "/statistics");
         System.out.println("Delete files at http://0.0.0.0:" + relayPort + "/delete");
+        System.out.println("Delete files at http://0.0.0.0:" + relayPort + "/reset");
 
 
         // Add shutdown hook for graceful exit
@@ -128,6 +129,7 @@ public class JServer {
         }
     }
 
+    // Handle resetting MJPEG stream connection
     private void handleReset(HttpExchange exchange) throws IOException {
         if (!"POST".equals(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
@@ -167,6 +169,8 @@ public class JServer {
         }
     }
 
+
+    // Handle deletion of files
     private void handleDelete(HttpExchange exchange) throws IOException {
         if (!"POST".equals(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
