@@ -83,7 +83,7 @@ public class JServer {
         System.out.println("Clips served from http://0.0.0.0:" + relayPort + "/clips/");
         System.out.println("Statistics at http://0.0.0.0:" + relayPort + "/statistics");
         System.out.println("Delete files at http://0.0.0.0:" + relayPort + "/delete");
-        System.out.println("Delete files at http://0.0.0.0:" + relayPort + "/reset");
+        System.out.println("Reset Webcam Stream at http://0.0.0.0:" + relayPort + "/reset");
 
 
         // Add shutdown hook for graceful exit
