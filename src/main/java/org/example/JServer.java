@@ -28,27 +28,35 @@ public class JServer {
 
     private volatile boolean isRecording = false;
     private Process recordingProcess = null;
-    private static final String RECORDING_CLIPS_DIR = "./clips";
-    private static final String CAMERA_DEVICE_PATH = "/dev/video98";
-    private static final String FFMPEG_LOG_FILE = "./ffmpeg.log";
+    private static String RECORDING_CLIPS_DIR;
+    private static String CAMERA_DEVICE_PATH;
+    private static String FFMPEG_LOG_FILE;
     private final File ffmpegLogFile;
-    private long serverStartTimeMillis;
+    private long serverStartTimeMillis = 0;
     private long recordingStartTimeMillis = -1;
     private boolean toResetCameraStream = false;
 
-    public JServer(String sourceUrl, int relayPort) {
+    public JServer(String sourceUrl, int relayPort) throws FileNotFoundException {
         this.sourceUrl = sourceUrl;
         this.relayPort = relayPort;
 
-        new java.io.File(RECORDING_CLIPS_DIR).mkdirs();
-        this.ffmpegLogFile = new File(FFMPEG_LOG_FILE);
+        var config = ConfigParser.parse("jserver.conf");
+        RECORDING_CLIPS_DIR = config.RECORDING_CLIPS_DIR();
+        CAMERA_DEVICE_PATH = config.CAMERA_DEVICE_PATH();
+        FFMPEG_LOG_FILE = config.FFMPEG_LOG_FILE();
+        System.out.println("Recording Path: " + RECORDING_CLIPS_DIR);
+        System.out.println("Camera Device Path: " + CAMERA_DEVICE_PATH);
+        System.out.println("FFMPEG Log File Path: " + FFMPEG_LOG_FILE);
+
+        new java.io.File(config.RECORDING_CLIPS_DIR()).mkdirs();
+        this.ffmpegLogFile = new File(config.FFMPEG_LOG_FILE());
 
         try {
             if (!ffmpegLogFile.exists()) {
                 ffmpegLogFile.createNewFile();
             }
         } catch (IOException e) {
-            System.err.println("Warning: Could not create FFmpeg log file at " + FFMPEG_LOG_FILE + ": " + e.getMessage());
+            System.err.println("Warning: Could not create FFmpeg log file at " + config.FFMPEG_LOG_FILE() + ": " + e.getMessage());
         }
 
         this.serverStartTimeMillis = System.currentTimeMillis();
